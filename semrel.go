@@ -18,9 +18,6 @@ const (
 	BumpMajor           = iota
 )
 
-// ChangeCategory is used to group
-type ChangeCategory string
-
 // ReleaseInput contains data collected from VCS and an analyzer function
 type ReleaseInput struct {
 	CurrentVersion    semver.Version
