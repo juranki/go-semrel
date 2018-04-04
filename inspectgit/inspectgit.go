@@ -1,7 +1,6 @@
 package inspectgit
 
 import (
-	"fmt"
 	"io"
 	"time"
 
@@ -21,20 +20,18 @@ func (commit *newCommit) Time() time.Time { return commit.Author.When }
 
 // InspectGit returns current version and list of unreleased changes
 func InspectGit(path string) (semver.Version, []semrel.RawChange, error) {
-	currVersion := semver.MustParse("0.0.0")
 
 	r, err := git.PlainOpen(path)
 	if err != nil {
-		return currVersion, nil, err
+		return semver.MustParse("0.0.0"), nil, err
 	}
 
 	versions, err := getVersions(r)
 	if err != nil {
-		return currVersion, nil, err
+		return semver.MustParse("0.0.0"), nil, err
 	}
-	fmt.Printf("%+v\n", versions)
 
-	return currVersion, nil, nil
+	return getUnreleasedCommits(r, versions)
 }
 
 func getVersions(r *git.Repository) (map[string]semver.Version, error) {
