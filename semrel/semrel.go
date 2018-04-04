@@ -27,7 +27,7 @@ type ReleaseInput struct {
 
 // RawChange provides accessors to VCS commit data
 type RawChange interface {
-	Message() string
+	Msg() string
 	SHA() string
 	Time() time.Time
 }
@@ -55,7 +55,7 @@ func Release(input *ReleaseInput) (*ReleaseOutput, error) {
 	}
 	bumpLevel := NoBump
 	for _, rawChange := range input.UnreleasedChanges {
-		changes, err := input.ChangeAnalyzer(rawChange.Message())
+		changes, err := input.ChangeAnalyzer(rawChange.Msg())
 		if err != nil {
 			return nil, err
 		}

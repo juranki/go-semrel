@@ -11,7 +11,7 @@ import (
 
 type dummyCommit string
 
-func (commit dummyCommit) Message() string { return string(commit) }
+func (commit dummyCommit) Msg() string     { return string(commit) }
 func (commit dummyCommit) SHA() string     { return string(commit) }
 func (commit dummyCommit) Time() time.Time { return time.Now() }
 
