@@ -97,7 +97,8 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 			if err != nil {
 				return err
 			}
-			return traverse(cc, isNew && !hasTag)
+			// fmt.Println(c.NumParents(), c.Hash, " -> ", cc.Hash)
+			traverse(cc, isNew && !hasTag)
 		}
 	}
 	h, err := r.Head()
