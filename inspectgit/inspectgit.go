@@ -12,6 +12,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
+// implement sermver.RawChange interface for object.Commit
 type newCommit object.Commit
 
 func (commit *newCommit) Msg() string     { return commit.Message }
@@ -34,6 +35,7 @@ func InspectGit(path string) (semver.Version, []semrel.RawChange, error) {
 	return getUnreleasedCommits(r, versions)
 }
 
+// Search semantic versions from tags
 func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	versions := make(map[string]semver.Version)
 
