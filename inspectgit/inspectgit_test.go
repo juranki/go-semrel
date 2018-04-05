@@ -27,7 +27,7 @@ func setupRepo() (*git.Repository, *git.Worktree) {
 }
 
 func commit(w *git.Worktree, msg string) plumbing.Hash {
-	hash, err := w.Commit("initial", &git.CommitOptions{
+	hash, err := w.Commit(msg, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "a",
 			Email: "a@b",
@@ -41,7 +41,7 @@ func commit(w *git.Worktree, msg string) plumbing.Hash {
 	return hash
 }
 func merge(w *git.Worktree, msg string, parents []plumbing.Hash) plumbing.Hash {
-	hash, err := w.Commit("initial", &git.CommitOptions{
+	hash, err := w.Commit(msg, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "a",
 			Email: "a@b",
