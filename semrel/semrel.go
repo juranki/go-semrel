@@ -36,6 +36,13 @@ type Commit interface {
 	Time() time.Time
 }
 
+// ByTime implements sort.Interface for []Commit based on Time().
+type ByTime []Commit
+
+func (a ByTime) Len() int           { return len(a) }
+func (a ByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByTime) Less(i, j int) bool { return a[i].Time().Before(a[j].Time()) }
+
 // Change captures ChangeAnalyzer results
 type Change interface {
 	Category() string

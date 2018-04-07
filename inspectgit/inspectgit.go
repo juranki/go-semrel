@@ -4,6 +4,7 @@ package inspectgit
 
 import (
 	"io"
+	"sort"
 	"time"
 
 	"github.com/blang/semver"
@@ -120,7 +121,11 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 	if err != nil {
 		return currVersion, nil, err
 	}
-	return currVersion, cache.newCommits(), nil
+
+	newCommits := cache.newCommits()
+	sort.Sort(semrel.ByTime(newCommits))
+
+	return currVersion, newCommits, nil
 }
 
 type commitCacheEntry struct {
