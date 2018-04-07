@@ -1,3 +1,5 @@
+// Inspect Git repository to find current version and changes after that
+
 package inspectgit
 
 import (
@@ -20,6 +22,10 @@ func (commit *newCommit) SHA() string     { return commit.Hash.String() }
 func (commit *newCommit) Time() time.Time { return commit.Author.When }
 
 // InspectGit returns current version and list of unreleased changes
+//
+// Open repository at `path` and traverse parents of `HEAD` to find
+// the tag that represents previous release and the commits that haven't
+// been released yet.
 func InspectGit(path string) (semver.Version, []semrel.RawChange, error) {
 
 	r, err := git.PlainOpen(path)

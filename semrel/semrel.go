@@ -1,3 +1,8 @@
+/**
+Process changes extracted from vcs using a change analyser function
+to produce the data needed for a release note
+*/
+
 package semrel
 
 import (

@@ -1,4 +1,6 @@
 /*
+Analyze angular-style commit message
+
 https://gist.github.com/stephenparish/9941e89d80e2bc58a153#format-of-the-commit-message
 https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#
 */
