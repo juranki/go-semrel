@@ -12,8 +12,6 @@ before_script:
 
 stages:
   - test
-
-dep:
   
 test-semrel:
   stage: test
