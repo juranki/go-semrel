@@ -1,5 +1,5 @@
-// Inspect Git repository to find current version and changes after that
-
+// Package inspectgit collects version tags and unreleased commits from
+// a git repository
 package inspectgit
 
 import (

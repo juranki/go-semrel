@@ -1,8 +1,5 @@
-/**
-Process changes extracted from vcs using a change analyser function
-to produce the data needed for a release note
-*/
-
+// Package semrel processes version control data using an analyser
+// function, to produce data for a release note
 package semrel
 
 import (
