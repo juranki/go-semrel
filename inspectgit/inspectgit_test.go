@@ -117,7 +117,7 @@ func TestGetUnreleasedCommits(t *testing.T) {
 	checkReleaseData(t, r, 2, "0.0.0")
 	tag(r, hash, "1.0.0")
 	checkReleaseData(t, r, 0, "1.0.0")
-	hash = commit(w, "2")
+	commit(w, "2")
 	checkReleaseData(t, r, 1, "1.0.0")
 }
 
