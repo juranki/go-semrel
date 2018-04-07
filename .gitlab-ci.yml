@@ -18,12 +18,12 @@ test-semrel:
   script:
   - go test -cover ./semrel
 
-test-semrel:
+test-inspectgit:
   stage: test
   script:
   - go test -cover ./inspectgit
 
-test-semrel:
+test-angularcommit:
   stage: test
   script:
   - go test -cover ./angularcommit
