@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	semrel "github.com/juranki/go-semrel/semrel"
+	"github.com/juranki/go-semrel/semrel"
 	"github.com/pkg/errors"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
-// implement sermver.RawChange interface for object.Commit
+// implement sermver.Commit interface for object.Commit
 type newCommit object.Commit
 
 func (commit *newCommit) Msg() string     { return commit.Message }
@@ -26,7 +26,7 @@ func (commit *newCommit) Time() time.Time { return commit.Author.When }
 // Open repository at `path` and traverse parents of `HEAD` to find
 // the tag that represents previous release and the commits that haven't
 // been released yet.
-func InspectGit(path string) (semver.Version, []semrel.RawChange, error) {
+func InspectGit(path string) (semver.Version, []semrel.Commit, error) {
 
 	r, err := git.PlainOpen(path)
 	if err != nil {
@@ -79,7 +79,7 @@ func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	return versions, nil
 }
 
-func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (semver.Version, []semrel.RawChange, error) {
+func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (semver.Version, []semrel.Commit, error) {
 	var traverse func(*object.Commit, bool) error
 	currVersion := semver.MustParse("0.0.0")
 	cache := newCache()
@@ -125,7 +125,7 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 
 type commitCacheEntry struct {
 	isNew  bool
-	commit semrel.RawChange
+	commit semrel.Commit
 }
 
 type commitCache struct {
@@ -138,8 +138,8 @@ func newCache() *commitCache {
 	}
 }
 
-func (cache *commitCache) newCommits() []semrel.RawChange {
-	rv := []semrel.RawChange{}
+func (cache *commitCache) newCommits() []semrel.Commit {
+	rv := []semrel.Commit{}
 	for _, entry := range cache.commits {
 		if entry.isNew {
 			rv = append(rv, entry.commit)

@@ -20,15 +20,17 @@ const (
 	BumpMajor           = iota
 )
 
-// ReleaseInput contains data collected from VCS and an analyzer function
-type ReleaseInput struct {
+// ChangeAnalyzer analyzes a commit message and returns 0 or more entries to release note
+type ChangeAnalyzer func(Message string) ([]Change, error)
+
+// VCSData contains data collected from VCS and an analyzer function
+type VCSData struct {
 	CurrentVersion    semver.Version
-	UnreleasedChanges []RawChange
-	ChangeAnalyzer    func(Message string) ([]Change, error)
+	UnreleasedCommits []Commit
 }
 
-// RawChange provides accessors to VCS commit data
-type RawChange interface {
+// Commit provides accessors to VCS commit data
+type Commit interface {
 	Msg() string
 	SHA() string
 	Time() time.Time
@@ -38,26 +40,27 @@ type RawChange interface {
 type Change interface {
 	Category() string
 	BumpLevel() BumpLevel
-	Render() string
+	Render(category string) string
 }
 
-// ReleaseOutput contains information for next release
-type ReleaseOutput struct {
+// ReleaseData contains information for next release
+type ReleaseData struct {
 	CurrentVersion semver.Version
 	NextVersion    semver.Version
+	BumpLevel      BumpLevel
 	Changes        map[string][]Change
 }
 
 // Release processes the release data
-func Release(input *ReleaseInput) (*ReleaseOutput, error) {
-	output := &ReleaseOutput{
+func Release(input *VCSData, analyze ChangeAnalyzer) (*ReleaseData, error) {
+	output := &ReleaseData{
 		CurrentVersion: input.CurrentVersion,
 		NextVersion:    input.CurrentVersion,
+		BumpLevel:      NoBump,
 		Changes:        map[string][]Change{},
 	}
-	bumpLevel := NoBump
-	for _, rawChange := range input.UnreleasedChanges {
-		changes, err := input.ChangeAnalyzer(rawChange.Msg())
+	for _, Commit := range input.UnreleasedCommits {
+		changes, err := analyze(Commit.Msg())
 		if err != nil {
 			return nil, err
 		}
@@ -67,12 +70,12 @@ func Release(input *ReleaseInput) (*ReleaseOutput, error) {
 			} else {
 				output.Changes[change.Category()] = []Change{change}
 			}
-			if change.BumpLevel() > bumpLevel {
-				bumpLevel = change.BumpLevel()
+			if change.BumpLevel() > output.BumpLevel {
+				output.BumpLevel = change.BumpLevel()
 			}
 		}
 	}
-	output.NextVersion = bump(output.CurrentVersion, bumpLevel)
+	output.NextVersion = bump(output.CurrentVersion, output.BumpLevel)
 	return output, nil
 }
 

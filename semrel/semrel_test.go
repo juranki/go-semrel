@@ -15,9 +15,9 @@ func (commit dummyCommit) Msg() string     { return string(commit) }
 func (commit dummyCommit) SHA() string     { return string(commit) }
 func (commit dummyCommit) Time() time.Time { return time.Now() }
 
-func (change BumpLevel) Category() string     { return fmt.Sprintf("%d", int(change)) }
-func (change BumpLevel) BumpLevel() BumpLevel { return change }
-func (change BumpLevel) Render() string       { return "" }
+func (change BumpLevel) Category() string              { return fmt.Sprintf("%d", int(change)) }
+func (change BumpLevel) BumpLevel() BumpLevel          { return change }
+func (change BumpLevel) Render(category string) string { return "" }
 
 func dummyAnalyzer(msg string) ([]Change, error) {
 	if strings.HasPrefix(msg, "fix") {
@@ -54,14 +54,13 @@ func TestBump(t *testing.T) {
 }
 
 func TestRelease1(t *testing.T) {
-	input := &ReleaseInput{
+	input := &VCSData{
 		CurrentVersion: semver.MustParse("0.0.0"),
-		UnreleasedChanges: []RawChange{
+		UnreleasedCommits: []Commit{
 			dummyCommit("fix"),
 		},
-		ChangeAnalyzer: dummyAnalyzer,
 	}
-	output, err := Release(input)
+	output, err := Release(input, dummyAnalyzer)
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,17 +73,16 @@ func TestRelease1(t *testing.T) {
 }
 
 func TestRelease2(t *testing.T) {
-	input := &ReleaseInput{
+	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
-		UnreleasedChanges: []RawChange{
+		UnreleasedCommits: []Commit{
 			dummyCommit("fix"),
 			dummyCommit("fix"),
 			dummyCommit("feat"),
 			dummyCommit("break"),
 		},
-		ChangeAnalyzer: dummyAnalyzer,
 	}
-	output, err := Release(input)
+	output, err := Release(input, dummyAnalyzer)
 	if err != nil {
 		t.Error(err)
 	}
@@ -103,17 +101,16 @@ func TestRelease2(t *testing.T) {
 }
 
 func TestRelease3(t *testing.T) {
-	input := &ReleaseInput{
+	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
-		UnreleasedChanges: []RawChange{
+		UnreleasedCommits: []Commit{
 			dummyCommit("fix"),
 			dummyCommit("fix"),
 			dummyCommit("fail"),
 			dummyCommit("break"),
 		},
-		ChangeAnalyzer: dummyAnalyzer,
 	}
-	_, err := Release(input)
+	_, err := Release(input, dummyAnalyzer)
 	if err == nil || err.Error() != "fail" {
 		t.Errorf("expected error, got %+v", err)
 	}
