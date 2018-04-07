@@ -5,6 +5,7 @@
 package angularcommit
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -44,6 +45,17 @@ func parseAngularHead(text string) *angularHead {
 	}
 }
 
-func parseAngularBreakingChange() {
+func parseAngularBreakingChange(text string, markers []string) string {
+	for _, marker := range markers {
+		re, err := regexp.Compile(`(?ms)` + marker + `\s+(.*)`)
+		if err != nil {
+			fmt.Printf("WARNING: unable to compile regular expression for marker '%s'\n", marker)
+			continue
+		}
+		if match := re.FindStringSubmatch(text); len(match) > 0 {
+			return strings.Trim(match[1], " \n\t")
+		}
 
+	}
+	return ""
 }

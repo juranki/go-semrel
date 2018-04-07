@@ -40,3 +40,21 @@ func TestAngularHead(t *testing.T) {
 		}
 	}
 }
+
+func TestBreakingChange(t *testing.T) {
+	markers := []string{"break:", "break"}
+	cases := []struct {
+		msg    string
+		result string
+	}{
+		{"foo\n\nbreak message", "message"},
+		{"foo\n\nbreak: message\nsecondline\n  ", "message\nsecondline"},
+		{"foo\n\nbrek: message\nsecondline\n  ", ""},
+	}
+	for _, c := range cases {
+		result := parseAngularBreakingChange(c.msg, markers)
+		if result != c.result {
+			t.Errorf("expected %s, got %s\n", c.result, result)
+		}
+	}
+}
