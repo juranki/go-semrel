@@ -7,13 +7,25 @@ before_script:
 - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
 - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
 - cd $GOPATH/src/$REPO_NAME
+- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+- dep ensure
 
 stages:
-- test
+  - test
 
-test:
+dep:
+  
+test-semrel:
   stage: test
   script:
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - dep ensure
-  - go test --cover $(go list ./... | grep -v /vendor/)
+  - go test -cover ./semrel
+
+test-semrel:
+  stage: test
+  script:
+  - go test -cover ./inspectgit
+
+test-semrel:
+  stage: test
+  script:
+  - go test -cover ./angularcommit
