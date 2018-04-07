@@ -23,7 +23,7 @@ const (
 // ChangeAnalyzer analyzes a commit message and returns 0 or more entries to release note
 type ChangeAnalyzer func(Message string) ([]Change, error)
 
-// VCSData contains data collected from VCS and an analyzer function
+// VCSData contains data collected from version control system
 type VCSData struct {
 	CurrentVersion    semver.Version
 	UnreleasedCommits []Commit
