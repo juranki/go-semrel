@@ -121,6 +121,22 @@ func TestGetUnreleasedCommits(t *testing.T) {
 	checkReleaseData(t, r, 1, "1.0.0")
 }
 
+func TestMultipleTagsOnCommit(t *testing.T) {
+	r, w := setupRepo()
+
+	commit(w, "initial")
+	checkReleaseData(t, r, 1, "0.0.0")
+	hash := commit(w, "1")
+	checkReleaseData(t, r, 2, "0.0.0")
+	tag(r, hash, "1.0.0")
+	tag(r, hash, "1.0.1")
+	checkReleaseData(t, r, 0, "1.0.1")
+	hash = commit(w, "2")
+	tag(r, hash, "2.0.0")
+	tag(r, hash, "2.0.1")
+	checkReleaseData(t, r, 0, "2.0.1")
+}
+
 func TestMerge(t *testing.T) {
 	r, w := setupRepo()
 

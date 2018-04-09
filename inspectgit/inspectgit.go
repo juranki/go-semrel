@@ -49,6 +49,10 @@ func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	addIfSemVer := func(sha string, version string) {
 		sv, err := semver.ParseTolerant(version)
 		if err == nil {
+			prevV, prevExists := versions[sha]
+			if prevExists && prevV.GT(sv) {
+				return
+			}
 			versions[sha] = sv
 		}
 	}
