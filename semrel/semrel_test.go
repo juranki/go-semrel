@@ -15,9 +15,8 @@ func (commit dummyCommit) Msg() string     { return string(commit) }
 func (commit dummyCommit) SHA() string     { return string(commit) }
 func (commit dummyCommit) Time() time.Time { return time.Now() }
 
-func (change BumpLevel) Category() string              { return fmt.Sprintf("%d", int(change)) }
-func (change BumpLevel) BumpLevel() BumpLevel          { return change }
-func (change BumpLevel) Render(category string) string { return "" }
+func (change BumpLevel) Category() string     { return fmt.Sprintf("%d", int(change)) }
+func (change BumpLevel) BumpLevel() BumpLevel { return change }
 
 type analyzer struct{}
 

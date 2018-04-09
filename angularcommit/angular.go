@@ -82,7 +82,7 @@ func (commit *angularCommit) Category() string {
 	}
 	return categoryMap[commit.BumpLevel()]
 }
-func (commit *angularCommit) Render(category string) string { return commit.Subject }
+
 func (commit *angularCommit) BumpLevel() semrel.BumpLevel {
 	if len(commit.BreakingMessage) > 0 {
 		return semrel.BumpMajor
