@@ -21,7 +21,8 @@ func (change BumpLevel) Render(category string) string { return "" }
 
 type analyzer struct{}
 
-func (a analyzer) Analyze(msg string) ([]Change, error) {
+func (a analyzer) Analyze(commit Commit) ([]Change, error) {
+	msg := commit.Msg()
 	if strings.HasPrefix(msg, "fix") {
 		return []Change{BumpLevel(BumpPatch)}, nil
 	}

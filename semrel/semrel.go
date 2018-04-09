@@ -22,7 +22,7 @@ const (
 
 // ChangeAnalyzer analyzes a commit message and returns 0 or more entries to release note
 type ChangeAnalyzer interface {
-	Analyze(message string) ([]Change, error)
+	Analyze(commit Commit) ([]Change, error)
 }
 
 // VCSData contains data collected from version control system
@@ -68,8 +68,8 @@ func Release(input *VCSData, analyzer ChangeAnalyzer) (*ReleaseData, error) {
 		BumpLevel:      NoBump,
 		Changes:        map[string][]Change{},
 	}
-	for _, Commit := range input.UnreleasedCommits {
-		changes, err := analyzer.Analyze(Commit.Msg())
+	for _, commit := range input.UnreleasedCommits {
+		changes, err := analyzer.Analyze(commit)
 		if err != nil {
 			return nil, err
 		}
