@@ -63,7 +63,8 @@ func (analyzer *Analyzer) Analyze(commit semrel.Commit) ([]semrel.Change, error)
 	return changes, nil
 }
 
-type angularCommit struct {
+// Change captures commit message analysis
+type Change struct {
 	isAngular       bool
 	CommitType      string
 	Scope           string
@@ -73,7 +74,8 @@ type angularCommit struct {
 	settings        *Settings
 }
 
-func (commit *angularCommit) Category() string {
+// Category implements semrel.Change interface
+func (commit *Change) Category() string {
 	var categoryMap = map[semrel.BumpLevel]string{
 		semrel.NoBump:    "",
 		semrel.BumpMajor: "breaking",
@@ -83,7 +85,8 @@ func (commit *angularCommit) Category() string {
 	return categoryMap[commit.BumpLevel()]
 }
 
-func (commit *angularCommit) BumpLevel() semrel.BumpLevel {
+// BumpLevel implements semrel.Change interface
+func (commit *Change) BumpLevel() semrel.BumpLevel {
 	if len(commit.BreakingMessage) > 0 {
 		return semrel.BumpMajor
 	}
@@ -100,10 +103,10 @@ func (commit *angularCommit) BumpLevel() semrel.BumpLevel {
 	return semrel.NoBump
 }
 
-func parseAngularHead(text string) *angularCommit {
+func parseAngularHead(text string) *Change {
 	t := strings.Replace(text, "\r", "", -1)
 	if match := fullAngularHead.FindStringSubmatch(t); len(match) > 0 {
-		return &angularCommit{
+		return &Change{
 			isAngular:  true,
 			CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
 			Scope:      strings.ToLower(strings.Trim(match[2], " \t\n")),
@@ -111,13 +114,13 @@ func parseAngularHead(text string) *angularCommit {
 		}
 	}
 	if match := minimalAngularHead.FindStringSubmatch(text); len(match) > 0 {
-		return &angularCommit{
+		return &Change{
 			isAngular:  true,
 			CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
 			Subject:    strings.Trim(match[2], " \t\n"),
 		}
 	}
-	return &angularCommit{
+	return &Change{
 		isAngular: false,
 		Subject:   strings.Trim(strings.Split(text, "\n")[0], " \n\t"),
 	}
