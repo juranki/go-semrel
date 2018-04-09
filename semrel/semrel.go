@@ -21,7 +21,9 @@ const (
 )
 
 // ChangeAnalyzer analyzes a commit message and returns 0 or more entries to release note
-type ChangeAnalyzer func(Message string) ([]Change, error)
+type ChangeAnalyzer interface {
+	Analyze(message string) ([]Change, error)
+}
 
 // VCSData contains data collected from version control system
 type VCSData struct {
@@ -59,7 +61,7 @@ type ReleaseData struct {
 }
 
 // Release processes the release data
-func Release(input *VCSData, analyze ChangeAnalyzer) (*ReleaseData, error) {
+func Release(input *VCSData, analyzer ChangeAnalyzer) (*ReleaseData, error) {
 	output := &ReleaseData{
 		CurrentVersion: input.CurrentVersion,
 		NextVersion:    input.CurrentVersion,
@@ -67,7 +69,7 @@ func Release(input *VCSData, analyze ChangeAnalyzer) (*ReleaseData, error) {
 		Changes:        map[string][]Change{},
 	}
 	for _, Commit := range input.UnreleasedCommits {
-		changes, err := analyze(Commit.Msg())
+		changes, err := analyzer.Analyze(Commit.Msg())
 		if err != nil {
 			return nil, err
 		}

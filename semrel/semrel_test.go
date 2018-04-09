@@ -19,7 +19,9 @@ func (change BumpLevel) Category() string              { return fmt.Sprintf("%d"
 func (change BumpLevel) BumpLevel() BumpLevel          { return change }
 func (change BumpLevel) Render(category string) string { return "" }
 
-func dummyAnalyzer(msg string) ([]Change, error) {
+type analyzer struct{}
+
+func (a analyzer) Analyze(msg string) ([]Change, error) {
 	if strings.HasPrefix(msg, "fix") {
 		return []Change{BumpLevel(BumpPatch)}, nil
 	}
@@ -34,6 +36,8 @@ func dummyAnalyzer(msg string) ([]Change, error) {
 	}
 	return []Change{}, nil
 }
+
+var dummyAnalyzer = analyzer{}
 
 func TestBump(t *testing.T) {
 	if bump(semver.MustParse("0.0.0"), NoBump).String() != "0.0.0" {
