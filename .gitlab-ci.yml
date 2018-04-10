@@ -12,7 +12,8 @@ before_script:
 
 stages:
   - test
-  
+  - release
+
 test-semrel:
   stage: test
   script:
@@ -27,3 +28,12 @@ test-angularcommit:
   stage: test
   script:
   - go test -cover ./angularcommit
+
+trigger-release:
+  stage: release
+  image: registry.gitlab.com/juhani/go-semrel-gitlab:v0.10.1
+  script:
+    - release tag
+  when: manual
+  except:
+    - tags
