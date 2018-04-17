@@ -5,7 +5,6 @@ package inspectgit
 import (
 	"io"
 	"sort"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/juranki/go-semrel/semrel"
@@ -14,13 +13,6 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
-
-// implement sermver.Commit interface for object.Commit
-type newCommit object.Commit
-
-func (commit *newCommit) Msg() string     { return commit.Message }
-func (commit *newCommit) SHA() string     { return commit.Hash.String() }
-func (commit *newCommit) Time() time.Time { return commit.Author.When }
 
 // InspectGit returns current version and list of unreleased changes
 //
@@ -160,10 +152,13 @@ func (cache *commitCache) newCommits() []semrel.Commit {
 func (cache *commitCache) add(commit *object.Commit, isNew bool) bool {
 	entry, hasEntry := cache.commits[commit.Hash.String()]
 	if !hasEntry {
-		nc := newCommit(*commit)
 		cache.commits[commit.Hash.String()] = &commitCacheEntry{
-			isNew:  isNew,
-			commit: &nc,
+			isNew: isNew,
+			commit: semrel.Commit{
+				Msg:  commit.Message,
+				SHA:  commit.Hash.String(),
+				Time: commit.Author.When,
+			},
 		}
 		return true
 	}

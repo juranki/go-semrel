@@ -50,14 +50,14 @@ type Settings struct {
 }
 
 // Analyze ..
-func (analyzer *Analyzer) Analyze(commit semrel.Commit) ([]semrel.Change, error) {
+func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error) {
 	changes := []semrel.Change{}
-	message := commit.Msg()
+	message := commit.Msg
 	ac := parseAngularHead(message)
 	ac.BreakingMessage = parseAngularBreakingChange(message, analyzer.settings.BreakingChangeMarkers)
 	ac.commit = commit
 	ac.settings = analyzer.settings
-	ac.Hash = commit.SHA()
+	ac.Hash = commit.SHA
 	if ac.BumpLevel() != semrel.NoBump {
 		changes = append(changes, ac)
 	}
@@ -72,7 +72,7 @@ type Change struct {
 	Subject         string
 	BreakingMessage string
 	Hash            string
-	commit          semrel.Commit
+	commit          *semrel.Commit
 	settings        *Settings
 }
 

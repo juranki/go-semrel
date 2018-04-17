@@ -22,7 +22,7 @@ const (
 
 // ChangeAnalyzer analyzes a commit message and returns 0 or more entries to release note
 type ChangeAnalyzer interface {
-	Analyze(commit Commit) ([]Change, error)
+	Analyze(commit *Commit) ([]Change, error)
 }
 
 // VCSData contains data collected from version control system
@@ -31,11 +31,11 @@ type VCSData struct {
 	UnreleasedCommits []Commit
 }
 
-// Commit provides accessors to VCS commit data
-type Commit interface {
-	Msg() string
-	SHA() string
-	Time() time.Time
+// Commit contains VCS commit data
+type Commit struct {
+	Msg  string
+	SHA  string
+	Time time.Time
 }
 
 // ByTime implements sort.Interface for []Commit based on Time().
@@ -43,7 +43,7 @@ type ByTime []Commit
 
 func (a ByTime) Len() int           { return len(a) }
 func (a ByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByTime) Less(i, j int) bool { return a[i].Time().Before(a[j].Time()) }
+func (a ByTime) Less(i, j int) bool { return a[i].Time.Before(a[j].Time) }
 
 // Change captures ChangeAnalyzer results
 type Change interface {
@@ -68,7 +68,7 @@ func Release(input *VCSData, analyzer ChangeAnalyzer) (*ReleaseData, error) {
 		Changes:        map[string][]Change{},
 	}
 	for _, commit := range input.UnreleasedCommits {
-		changes, err := analyzer.Analyze(commit)
+		changes, err := analyzer.Analyze(&commit)
 		if err != nil {
 			return nil, err
 		}
