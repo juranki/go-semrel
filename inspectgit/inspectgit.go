@@ -14,21 +14,21 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
-// InspectGit returns current version and list of unreleased changes
+// VCSData returns current version and list of unreleased changes
 //
 // Open repository at `path` and traverse parents of `HEAD` to find
 // the tag that represents previous release and the commits that haven't
 // been released yet.
-func InspectGit(path string) (semver.Version, []semrel.Commit, error) {
+func VCSData(path string) (*semrel.VCSData, error) {
 
 	r, err := git.PlainOpen(path)
 	if err != nil {
-		return semver.MustParse("0.0.0"), nil, err
+		return nil, err
 	}
 
 	versions, err := getVersions(r)
 	if err != nil {
-		return semver.MustParse("0.0.0"), nil, err
+		return nil, err
 	}
 
 	return getUnreleasedCommits(r, versions)
@@ -76,7 +76,7 @@ func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	return versions, nil
 }
 
-func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (semver.Version, []semrel.Commit, error) {
+func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (*semrel.VCSData, error) {
 	var traverse func(*object.Commit, bool) error
 	currVersion := semver.MustParse("0.0.0")
 	cache := newCache()
@@ -106,22 +106,25 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 	}
 	h, err := r.Head()
 	if err != nil {
-		return currVersion, nil, errors.Wrap(err, "get HEAD")
+		return nil, errors.Wrap(err, "get HEAD")
 	}
 	hCommit, err := r.CommitObject(h.Hash())
 	if err != nil {
-		return currVersion, nil, err
+		return nil, err
 	}
 
 	err = traverse(hCommit, true)
 	if err != nil {
-		return currVersion, nil, err
+		return nil, err
 	}
 
 	newCommits := cache.newCommits()
 	sort.Sort(semrel.ByTime(newCommits))
 
-	return currVersion, newCommits, nil
+	return &semrel.VCSData{
+		CurrentVersion:    currVersion,
+		UnreleasedCommits: newCommits,
+	}, nil
 }
 
 type commitCacheEntry struct {
