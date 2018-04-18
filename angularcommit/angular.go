@@ -15,7 +15,8 @@ import (
 var (
 	fullAngularHead    = regexp.MustCompile(`^\s*([a-zA-Z]+)\s*\(([^\)]+)\):\s*([^\n]*)`)
 	minimalAngularHead = regexp.MustCompile(`^\s*([a-zA-Z]+):\s*([^\n]*)`)
-	defaultSettings    = &Settings{
+	// DefaultOptions for angular commit Analyzer
+	DefaultOptions = &Options{
 		FixTypes:     []string{"fix", "refactor", "perf"},
 		FeatureTypes: []string{"feat"},
 		BreakingChangeMarkers: []string{
@@ -26,37 +27,43 @@ var (
 	}
 )
 
-// Analyzer ...
-type Analyzer struct {
-	settings *Settings
-}
-
-// New ..
-func New(settings *Settings) *Analyzer {
-	s := settings
-	if s == nil {
-		s = defaultSettings
-	}
-	return &Analyzer{
-		settings: s,
-	}
-}
-
-// Settings controls how angular commit analyzer behaves
-type Settings struct {
+// Options control how angular commit analyzer behaves
+type Options struct {
 	FixTypes              []string
 	FeatureTypes          []string
 	BreakingChangeMarkers []string
 }
 
-// Analyze ..
+// Analyzer is a semrel.Analyzer instance that parses commits
+// according to angularjs commit conventions
+type Analyzer struct {
+	options *Options
+}
+
+// NewWithOptions initializes Analyzer with options provided
+func NewWithOptions(options *Options) *Analyzer {
+	return &Analyzer{
+		options: options,
+	}
+}
+
+// New initializes Analyzer with DefaultOptions
+func New() *Analyzer {
+	return &Analyzer{}
+}
+
+// Analyze implements semrel.Analyzer interface for angularcommit.Analyzer
 func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error) {
+	options := analyzer.options
+	if analyzer.options == nil {
+		options = DefaultOptions
+	}
 	changes := []semrel.Change{}
 	message := commit.Msg
 	ac := parseAngularHead(message)
-	ac.BreakingMessage = parseAngularBreakingChange(message, analyzer.settings.BreakingChangeMarkers)
+	ac.BreakingMessage = parseAngularBreakingChange(message, options.BreakingChangeMarkers)
 	ac.commit = commit
-	ac.settings = analyzer.settings
+	ac.options = options
 	ac.Hash = commit.SHA
 	if ac.BumpLevel() != semrel.NoBump {
 		changes = append(changes, ac)
@@ -73,7 +80,7 @@ type Change struct {
 	BreakingMessage string
 	Hash            string
 	commit          *semrel.Commit
-	settings        *Settings
+	options         *Options
 }
 
 // Category implements semrel.Change interface
@@ -92,12 +99,12 @@ func (commit *Change) BumpLevel() semrel.BumpLevel {
 	if len(commit.BreakingMessage) > 0 {
 		return semrel.BumpMajor
 	}
-	for _, fType := range commit.settings.FeatureTypes {
+	for _, fType := range commit.options.FeatureTypes {
 		if fType == commit.CommitType {
 			return semrel.BumpMinor
 		}
 	}
-	for _, fType := range commit.settings.FixTypes {
+	for _, fType := range commit.options.FixTypes {
 		if fType == commit.CommitType {
 			return semrel.BumpPatch
 		}
