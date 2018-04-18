@@ -9,19 +9,13 @@ import (
 	"github.com/blang/semver"
 )
 
-type dummyCommit string
-
-func (commit dummyCommit) Msg() string     { return string(commit) }
-func (commit dummyCommit) SHA() string     { return string(commit) }
-func (commit dummyCommit) Time() time.Time { return time.Now() }
-
 func (change BumpLevel) Category() string     { return fmt.Sprintf("%d", int(change)) }
 func (change BumpLevel) BumpLevel() BumpLevel { return change }
 
 type analyzer struct{}
 
-func (a analyzer) Analyze(commit Commit) ([]Change, error) {
-	msg := commit.Msg()
+func (a analyzer) Analyze(commit *Commit) ([]Change, error) {
+	msg := commit.Msg
 	if strings.HasPrefix(msg, "fix") {
 		return []Change{BumpLevel(BumpPatch)}, nil
 	}
@@ -61,7 +55,7 @@ func TestRelease1(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("0.0.0"),
 		UnreleasedCommits: []Commit{
-			dummyCommit("fix"),
+			{"fix", "", time.Now()},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)
@@ -80,10 +74,10 @@ func TestRelease2(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
 		UnreleasedCommits: []Commit{
-			dummyCommit("fix"),
-			dummyCommit("fix"),
-			dummyCommit("feat"),
-			dummyCommit("break"),
+			{"fix", "", time.Now()},
+			{"fix", "", time.Now()},
+			{"feat", "", time.Now()},
+			{"break", "", time.Now()},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)
@@ -108,10 +102,10 @@ func TestRelease3(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
 		UnreleasedCommits: []Commit{
-			dummyCommit("fix"),
-			dummyCommit("fix"),
-			dummyCommit("fail"),
-			dummyCommit("break"),
+			{"fix", "", time.Now()},
+			{"fix", "", time.Now()},
+			{"fail", "", time.Now()},
+			{"break", "", time.Now()},
 		},
 	}
 	_, err := Release(input, dummyAnalyzer)
