@@ -1,4 +1,5 @@
 language: go
+install: false
 
 go:
   - "1.9.x"
@@ -6,6 +7,4 @@ go:
 
 before_install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-
-install:
   - dep ensure
