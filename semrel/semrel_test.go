@@ -9,6 +9,7 @@ import (
 	"github.com/blang/semver"
 )
 
+// implement Change interface for BumpLevel
 func (change BumpLevel) Category() string     { return fmt.Sprintf("%d", int(change)) }
 func (change BumpLevel) BumpLevel() BumpLevel { return change }
 
@@ -34,20 +35,22 @@ func (a analyzer) Analyze(commit *Commit) ([]Change, error) {
 var dummyAnalyzer = analyzer{}
 
 func TestBump(t *testing.T) {
-	if bump(semver.MustParse("0.0.0"), NoBump).String() != "0.0.0" {
-		t.Error("NoBump")
+	data := []struct {
+		origVersion string
+		bumpLevel   BumpLevel
+		newVersion  string
+	}{
+		{"0.0.0", NoBump, "0.0.0"},
+		{"0.0.0", BumpPatch, "0.0.1"},
+		{"0.2.1", BumpMinor, "0.3.0"},
+		{"0.2.1", BumpMajor, "0.3.0"},
+		{"1.2.1", BumpMajor, "2.0.0"},
 	}
-	if bump(semver.MustParse("0.0.0"), BumpPatch).String() != "0.0.1" {
-		t.Error("BumpPatch")
-	}
-	if bump(semver.MustParse("0.2.1"), BumpMinor).String() != "0.3.0" {
-		t.Error("BumpMinor")
-	}
-	if bump(semver.MustParse("0.2.1"), BumpMajor).String() != "0.3.0" {
-		t.Error("BumpMajor alpha")
-	}
-	if bump(semver.MustParse("1.2.1"), BumpMajor).String() != "2.0.0" {
-		t.Error("BumpMajor")
+	for _, d := range data {
+		bumpedVersion := bump(semver.MustParse(d.origVersion), d.bumpLevel).String()
+		if bumpedVersion != d.newVersion {
+			t.Errorf("with %+v, got %s, want %s", d, bumpedVersion, d.newVersion)
+		}
 	}
 }
 
@@ -63,10 +66,10 @@ func TestRelease1(t *testing.T) {
 		t.Error(err)
 	}
 	if output.NextVersion.String() != "0.0.1" {
-		t.Errorf("expected 0.0.1, got %s", output.NextVersion.String())
+		t.Errorf("got %s, want 0.0.1", output.NextVersion.String())
 	}
 	if len(output.Changes["1"]) != 1 {
-		t.Errorf("expected one fix, got %d", len(output.Changes["1"]))
+		t.Errorf("got %d, want 1 fix", len(output.Changes["1"]))
 	}
 }
 
@@ -85,16 +88,16 @@ func TestRelease2(t *testing.T) {
 		t.Error(err)
 	}
 	if output.NextVersion.String() != "2.0.0" {
-		t.Errorf("expected 0.0.1, got %s", output.NextVersion.String())
+		t.Errorf("got %s, want 2.0.0", output.NextVersion.String())
 	}
 	if len(output.Changes["1"]) != 2 {
-		t.Errorf("expected two fixes, got %d", len(output.Changes["1"]))
+		t.Errorf("got %d, want 2 fixes", len(output.Changes["1"]))
 	}
 	if len(output.Changes["2"]) != 1 {
-		t.Errorf("expected one feature, got %d", len(output.Changes["2"]))
+		t.Errorf("got %d, want 1 features", len(output.Changes["2"]))
 	}
 	if len(output.Changes["3"]) != 1 {
-		t.Errorf("expected one breaking change, got %d", len(output.Changes["3"]))
+		t.Errorf("got %d, want expected 1 breaking change", len(output.Changes["3"]))
 	}
 }
 
@@ -110,6 +113,6 @@ func TestRelease3(t *testing.T) {
 	}
 	_, err := Release(input, dummyAnalyzer)
 	if err == nil || err.Error() != "fail" {
-		t.Errorf("expected error, got %+v", err)
+		t.Errorf("got %+v, want error", err)
 	}
 }
