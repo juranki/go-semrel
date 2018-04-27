@@ -27,16 +27,16 @@ func TestAngularHead(t *testing.T) {
 	for _, c := range cases {
 		ah := parseAngularHead(c.msg)
 		if ah.isAngular != c.isAngular {
-			t.Errorf("'%s': expected isAngular=%t, got %t\n", c.msg, c.isAngular, ah.isAngular)
+			t.Errorf("'%s': got isAngular=%t, want %t\n", c.msg, ah.isAngular, c.isAngular)
 		}
 		if ah.CommitType != c.commitType {
-			t.Errorf("'%s': expected type '%s', got '%s'\n", c.msg, c.commitType, ah.CommitType)
+			t.Errorf("'%s': got type '%s', want '%s'\n", c.msg, ah.CommitType, c.commitType)
 		}
 		if ah.Scope != c.scope {
-			t.Errorf("'%s': expected scope '%s', got '%s'\n", c.msg, c.scope, ah.Scope)
+			t.Errorf("'%s': got scope '%s', want '%s'\n", c.msg, ah.Scope, c.scope)
 		}
 		if ah.Subject != c.subject {
-			t.Errorf("'%s': expected subject '%s', got '%s'\n", c.msg, c.subject, ah.Subject)
+			t.Errorf("'%s': got subject '%s', want '%s'\n", c.msg, ah.Subject, c.subject)
 		}
 	}
 }
@@ -54,7 +54,7 @@ func TestBreakingChange(t *testing.T) {
 	for _, c := range cases {
 		result := parseAngularBreakingChange(c.msg, markers)
 		if result != c.result {
-			t.Errorf("expected %s, got %s\n", c.result, result)
+			t.Errorf("got %s, want %s\n", result, c.result)
 		}
 	}
 }
