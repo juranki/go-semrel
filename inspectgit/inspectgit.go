@@ -165,7 +165,7 @@ func (cache *commitCache) add(commit *object.Commit, isNew bool) bool {
 		}
 		return true
 	}
-	if !entry.isNew {
+	if !entry.isNew || entry.isNew == isNew {
 		return false
 	}
 	entry.isNew = isNew
