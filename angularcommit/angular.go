@@ -17,7 +17,7 @@ var (
 	minimalAngularHead = regexp.MustCompile(`^\s*([a-zA-Z]+):\s*([^\n]*)`)
 	// DefaultOptions for angular commit Analyzer
 	DefaultOptions = &Options{
-		FixTypes:     []string{"fix", "refactor", "perf"},
+		FixTypes:     []string{"fix", "refactor", "perf", "docs", "style", "test"},
 		FeatureTypes: []string{"feat"},
 		BreakingChangeMarkers: []string{
 			`BREAKING\s+CHANGE:`,
