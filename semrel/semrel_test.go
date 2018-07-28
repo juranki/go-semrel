@@ -34,6 +34,23 @@ func (a analyzer) Analyze(commit *Commit) ([]Change, error) {
 
 var dummyAnalyzer = analyzer{}
 
+func TestNoChangesBump(t *testing.T) {
+	input := &VCSData{
+		CurrentVersion: semver.MustParse("0.1.0"),
+		UnreleasedCommits: []Commit{
+			{"aaa", "", time.Now()},
+		},
+	}
+	output, err := Release(input, dummyAnalyzer)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Print(output)
+	if output.NextVersion.String() != "0.1.0" {
+		t.Error(output.NextVersion.String())
+	}
+}
+
 func TestBump(t *testing.T) {
 	data := []struct {
 		origVersion string

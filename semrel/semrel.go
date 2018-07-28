@@ -91,6 +91,9 @@ func bump(curr semver.Version, bumpLevel BumpLevel) semver.Version {
 	var major uint64
 	var minor uint64
 	var patch uint64
+	if bumpLevel == NoBump {
+		return semver.MustParse(curr.String())
+	}
 	if bumpLevel == BumpMajor && curr.Major > 0 {
 		major = curr.Major + 1
 	}
