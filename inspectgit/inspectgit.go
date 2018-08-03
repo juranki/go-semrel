@@ -34,13 +34,13 @@ func VCSData(path string) (*semrel.VCSData, error) {
 	return getUnreleasedCommits(r, versions)
 }
 
-// Search semantic versions from tags
+// Search semantic versions from tags, don't include pre-releases
 func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	versions := make(map[string]semver.Version)
 
 	addIfSemVer := func(sha string, version string) {
 		sv, err := semver.ParseTolerant(version)
-		if err == nil {
+		if err == nil && len(sv.Pre) == 0 {
 			prevV, prevExists := versions[sha]
 			if prevExists && prevV.GT(sv) {
 				return
