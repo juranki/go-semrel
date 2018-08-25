@@ -29,6 +29,8 @@ type ChangeAnalyzer interface {
 type VCSData struct {
 	CurrentVersion    semver.Version
 	UnreleasedCommits []Commit
+	// Time of the commit being released
+	Time time.Time
 }
 
 // Commit contains VCS commit data
@@ -57,6 +59,8 @@ type ReleaseData struct {
 	NextVersion    semver.Version
 	BumpLevel      BumpLevel
 	Changes        map[string][]Change
+	// Time of the commit being released
+	Time time.Time
 }
 
 // Release processes the release data
@@ -66,6 +70,7 @@ func Release(input *VCSData, analyzer ChangeAnalyzer) (*ReleaseData, error) {
 		NextVersion:    input.CurrentVersion,
 		BumpLevel:      NoBump,
 		Changes:        map[string][]Change{},
+		Time:           input.Time,
 	}
 	for _, commit := range input.UnreleasedCommits {
 		changes, err := analyzer.Analyze(&commit)

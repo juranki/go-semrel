@@ -5,6 +5,7 @@ package inspectgit
 import (
 	"io"
 	"sort"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/juranki/go-semrel/semrel"
@@ -31,7 +32,31 @@ func VCSData(path string) (*semrel.VCSData, error) {
 		return nil, err
 	}
 
-	return getUnreleasedCommits(r, versions)
+	data, err := getUnreleasedCommits(r, versions)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := getHeadTime(r)
+	if err != nil {
+		return nil, err
+	}
+	data.Time = *t
+
+	return data, nil
+}
+
+func getHeadTime(r *git.Repository) (*time.Time, error) {
+	h, err := r.Head()
+	if err != nil {
+		return nil, errors.Wrap(err, "get HEAD")
+	}
+	hCommit, err := r.CommitObject(h.Hash())
+	if err != nil {
+		return nil, err
+	}
+
+	return &hCommit.Author.When, nil
 }
 
 // Search semantic versions from tags, don't include pre-releases
