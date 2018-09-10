@@ -62,7 +62,7 @@ func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error
 	message := commit.Msg
 	ac := parseAngularHead(message)
 	ac.BreakingMessage = parseAngularBreakingChange(message, options.BreakingChangeMarkers)
-	ac.commit = commit
+	ac.commit = *commit
 	ac.options = options
 	ac.Hash = commit.SHA
 	if ac.BumpLevel() != semrel.NoBump {
@@ -79,7 +79,7 @@ type Change struct {
 	Subject         string
 	BreakingMessage string
 	Hash            string
-	commit          *semrel.Commit
+	commit          semrel.Commit
 	options         *Options
 }
 
