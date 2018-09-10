@@ -59,13 +59,13 @@ func getHeadTime(r *git.Repository) (*time.Time, error) {
 	return &hCommit.Author.When, nil
 }
 
-// Search semantic versions from tags, don't include pre-releases
+// Search semantic versions from tags, including pre-releases
 func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 	versions := make(map[string]semver.Version)
 
 	addIfSemVer := func(sha string, version string) {
 		sv, err := semver.ParseTolerant(version)
-		if err == nil && len(sv.Pre) == 0 {
+		if err == nil {
 			prevV, prevExists := versions[sha]
 			if prevExists && prevV.GT(sv) {
 				return
@@ -102,17 +102,24 @@ func getVersions(r *git.Repository) (map[string]semver.Version, error) {
 }
 
 func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (*semrel.VCSData, error) {
-	var traverse func(*object.Commit, bool) error
+	var traverse func(*object.Commit, bool, bool) error
 	currVersion := semver.MustParse("0.0.0")
 	cache := newCache()
-	traverse = func(c *object.Commit, isNew bool) error {
+	traverse = func(c *object.Commit, isNew bool, isPreReleased bool) error {
+		unReleased := isNew
+		preReleased := isPreReleased
 		tag, hasTag := versions[c.Hash.String()]
-		if hasTag && isNew {
-			if tag.GT(currVersion) {
-				currVersion = tag
+		if hasTag {
+			if len(tag.Pre) > 0 || len(tag.Build) > 0 {
+				preReleased = true
+			} else if isNew {
+				unReleased = false
+				if tag.GT(currVersion) {
+					currVersion = tag
+				}
 			}
 		}
-		if !cache.add(c, isNew && !hasTag) {
+		if !cache.add(c, unReleased, preReleased) {
 			return nil
 		}
 		parents := c.Parents()
@@ -126,7 +133,7 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 				return err
 			}
 			// fmt.Println(c.NumParents(), c.Hash, " -> ", cc.Hash)
-			traverse(cc, isNew && !hasTag)
+			traverse(cc, unReleased, preReleased)
 		}
 	}
 	h, err := r.Head()
@@ -138,7 +145,7 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 		return nil, err
 	}
 
-	err = traverse(hCommit, true)
+	err = traverse(hCommit, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -177,18 +184,22 @@ func (cache *commitCache) newCommits() []semrel.Commit {
 	return rv
 }
 
-func (cache *commitCache) add(commit *object.Commit, isNew bool) bool {
+func (cache *commitCache) add(commit *object.Commit, isNew bool, isPreReleased bool) bool {
 	entry, hasEntry := cache.commits[commit.Hash.String()]
 	if !hasEntry {
 		cache.commits[commit.Hash.String()] = &commitCacheEntry{
 			isNew: isNew,
 			commit: semrel.Commit{
-				Msg:  commit.Message,
-				SHA:  commit.Hash.String(),
-				Time: commit.Author.When,
+				Msg:         commit.Message,
+				SHA:         commit.Hash.String(),
+				Time:        commit.Author.When,
+				PreReleased: isPreReleased,
 			},
 		}
 		return true
+	}
+	if isPreReleased {
+		entry.commit.PreReleased = true
 	}
 	if !entry.isNew || entry.isNew == isNew {
 		return false

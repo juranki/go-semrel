@@ -35,9 +35,10 @@ type VCSData struct {
 
 // Commit contains VCS commit data
 type Commit struct {
-	Msg  string
-	SHA  string
-	Time time.Time
+	Msg         string
+	SHA         string
+	Time        time.Time
+	PreReleased bool
 }
 
 // ByTime implements sort.Interface for []Commit based on Time().
