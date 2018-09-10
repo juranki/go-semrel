@@ -112,6 +112,11 @@ func (commit *Change) BumpLevel() semrel.BumpLevel {
 	return semrel.NoBump
 }
 
+// PreReleased implements semrel.Change interface
+func (commit *Change) PreReleased() bool {
+	return commit.commit.PreReleased
+}
+
 func parseAngularHead(text string) *Change {
 	t := strings.Replace(text, "\r", "", -1)
 	if match := fullAngularHead.FindStringSubmatch(t); len(match) > 0 {

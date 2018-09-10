@@ -52,6 +52,7 @@ func (a ByTime) Less(i, j int) bool { return a[i].Time.Before(a[j].Time) }
 type Change interface {
 	Category() string
 	BumpLevel() BumpLevel
+	PreReleased() bool
 }
 
 // ReleaseData contains information for next release

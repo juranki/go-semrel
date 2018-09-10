@@ -12,6 +12,7 @@ import (
 // implement Change interface for BumpLevel
 func (change BumpLevel) Category() string     { return fmt.Sprintf("%d", int(change)) }
 func (change BumpLevel) BumpLevel() BumpLevel { return change }
+func (change BumpLevel) PreReleased() bool    { return false }
 
 type analyzer struct{}
 
