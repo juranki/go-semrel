@@ -29,6 +29,7 @@ steps:
     # go get -v -t -d ./...
     pwd
     ls -la
+    git status
     if [ -f Gopkg.toml ]; then
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         dep ensure
