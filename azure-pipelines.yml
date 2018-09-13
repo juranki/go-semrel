@@ -21,15 +21,18 @@ steps:
     mv !(gopath) '$(modulePath)'
     echo '##vso[task.prependpath]$(GOBIN)'
     echo '##vso[task.prependpath]$(GOROOT)/bin'
+    touch artifact
   displayName: 'Set up the Go workspace'
 
 - script: |
     go version
     go get -v -t -d ./...
-    if [ -f Gopkg.toml ]; then
-        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        dep ensure
-    fi
+    pwd
+    ls -la
+    # if [ -f Gopkg.toml ]; then
+    #     curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+    #     dep ensure
+    # fi
     go build -v .
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies, then build'
