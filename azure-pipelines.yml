@@ -27,6 +27,8 @@ steps:
 - script: |
     go version
     # go get -v -t -d ./...
+    go get gitlab.com/juhani/go-semrel-gitlab
+    go-semrel-gitlab test-git
     pwd
     ls -la
     git status
