@@ -1,6 +1,7 @@
 package angularcommit
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -56,5 +57,31 @@ func TestBreakingChange(t *testing.T) {
 		if result != c.result {
 			t.Errorf("got %s, want %s\n", result, c.result)
 		}
+	}
+}
+
+func TestAnalyzer_Lint(t *testing.T) {
+	analyzer := New()
+	tests := []struct {
+		name    string
+		message string
+		want    []string
+	}{
+		{"simple ok", "chore: test", []string{}},
+		{"no type", "test", []string{"invalid message head"}},
+		{"invalid type", "foo: test", []string{"invalid type"}},
+		{"with scope", "test(test): test", []string{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errs := analyzer.Lint(tt.message)
+			got := make([]string, len(errs))
+			for i, s := range errs {
+				got[i] = s.Error()
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Analyzer.Lint() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

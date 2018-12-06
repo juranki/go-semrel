@@ -5,6 +5,7 @@
 package angularcommit
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -17,7 +18,8 @@ var (
 	minimalAngularHead = regexp.MustCompile(`^\s*([a-zA-Z]+):\s*([^\n]*)`)
 	// DefaultOptions for angular commit Analyzer
 	DefaultOptions = &Options{
-		FixTypes:     []string{"fix", "refactor", "perf", "docs", "style", "test"},
+		ChoreTypes:   []string{"chore", "docs", "test"},
+		FixTypes:     []string{"fix", "refactor", "perf", "style"},
 		FeatureTypes: []string{"feat"},
 		BreakingChangeMarkers: []string{
 			`BREAKING\s+CHANGE:`,
@@ -29,6 +31,7 @@ var (
 
 // Options control how angular commit analyzer behaves
 type Options struct {
+	ChoreTypes            []string
 	FixTypes              []string
 	FeatureTypes          []string
 	BreakingChangeMarkers []string
@@ -50,6 +53,35 @@ func NewWithOptions(options *Options) *Analyzer {
 // New initializes Analyzer with DefaultOptions
 func New() *Analyzer {
 	return &Analyzer{}
+}
+
+// Lint checks if message is fomatted according to rules specified in analyzer.
+// Currently only checs the format of head line and that type is found.
+func (analyzer *Analyzer) Lint(message string) []error {
+	options := analyzer.options
+	if options == nil {
+		options = DefaultOptions
+	}
+	ac := parseAngularHead(message)
+	if !ac.isAngular {
+		return []error{errors.New("invalid message head")}
+	}
+	for _, t := range options.ChoreTypes {
+		if ac.CommitType == t {
+			return []error{}
+		}
+	}
+	for _, t := range options.FeatureTypes {
+		if ac.CommitType == t {
+			return []error{}
+		}
+	}
+	for _, t := range options.FixTypes {
+		if ac.CommitType == t {
+			return []error{}
+		}
+	}
+	return []error{errors.New("invalid type")}
 }
 
 // Analyze implements semrel.Analyzer interface for angularcommit.Analyzer
