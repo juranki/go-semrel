@@ -58,7 +58,7 @@ func merge(t *testing.T, w *git.Worktree, msg string, parents []plumbing.Hash) p
 
 func tag(t *testing.T, r *git.Repository, hash plumbing.Hash, version string) {
 	t.Helper()
-	n := plumbing.ReferenceName(fmt.Sprintf("refs/tags/v%s", version))
+	n := plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", version))
 	tag := plumbing.NewHashReference(n, hash)
 	err := r.Storer.SetReference(tag)
 	if err != nil {
@@ -68,7 +68,7 @@ func tag(t *testing.T, r *git.Repository, hash plumbing.Hash, version string) {
 
 func checkReleaseData(t *testing.T, r *git.Repository, n int, version string) {
 	t.Helper()
-	vs, err := getVersions(r)
+	vs, err := getVersions(r, "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,7 +94,7 @@ func TestGetVersions(t *testing.T) {
 	r, w := setupRepo(t)
 
 	checkVersionCount := func(n int) {
-		vs, err := getVersions(r)
+		vs, err := getVersions(r, "")
 		if err != nil {
 			t.Error(err)
 		}
@@ -106,7 +106,28 @@ func TestGetVersions(t *testing.T) {
 	checkVersionCount(0)
 
 	hash := commit(t, w, "initial")
-	tag(t, r, hash, "2.3.4")
+	tag(t, r, hash, "v2.3.4")
+
+	checkVersionCount(1)
+}
+
+func TestGetVersionsWPrefix(t *testing.T) {
+	r, w := setupRepo(t)
+
+	checkVersionCount := func(n int) {
+		vs, err := getVersions(r, "releases/")
+		if err != nil {
+			t.Error(err)
+		}
+		if len(vs) != n {
+			t.Errorf("got %d versions, want %d", len(vs), n)
+		}
+	}
+
+	checkVersionCount(0)
+
+	hash := commit(t, w, "initial")
+	tag(t, r, hash, "releases/2.3.4")
 
 	checkVersionCount(1)
 }
@@ -118,7 +139,7 @@ func TestGetUnreleasedCommits(t *testing.T) {
 	checkReleaseData(t, r, 1, "0.0.0")
 	hash := commit(t, w, "1")
 	checkReleaseData(t, r, 2, "0.0.0")
-	tag(t, r, hash, "1.0.0")
+	tag(t, r, hash, "v1.0.0")
 	checkReleaseData(t, r, 0, "1.0.0")
 	commit(t, w, "2")
 	checkReleaseData(t, r, 1, "1.0.0")
@@ -131,7 +152,7 @@ func TestIgnorePreRelease(t *testing.T) {
 	checkReleaseData(t, r, 1, "0.0.0")
 	hash := commit(t, w, "1")
 	checkReleaseData(t, r, 2, "0.0.0")
-	tag(t, r, hash, "1.0.0-pre")
+	tag(t, r, hash, "v1.0.0-pre")
 	checkReleaseData(t, r, 2, "0.0.0")
 	commit(t, w, "2")
 	checkReleaseData(t, r, 3, "0.0.0")
@@ -144,12 +165,12 @@ func TestMultipleTagsOnCommit(t *testing.T) {
 	checkReleaseData(t, r, 1, "0.0.0")
 	hash := commit(t, w, "1")
 	checkReleaseData(t, r, 2, "0.0.0")
-	tag(t, r, hash, "1.0.0")
-	tag(t, r, hash, "1.0.1")
+	tag(t, r, hash, "v1.0.0")
+	tag(t, r, hash, "v1.0.1")
 	checkReleaseData(t, r, 0, "1.0.1")
 	hash = commit(t, w, "2")
-	tag(t, r, hash, "2.0.0")
-	tag(t, r, hash, "2.0.1")
+	tag(t, r, hash, "v2.0.0")
+	tag(t, r, hash, "v2.0.1")
 	checkReleaseData(t, r, 0, "2.0.1")
 }
 
@@ -160,7 +181,7 @@ func TestMerge(t *testing.T) {
 	a1 := commit(t, w, "a1")
 	a2 := commit(t, w, "a2")
 	checkReleaseData(t, r, 3, "0.0.0")
-	tag(t, r, a2, "1.0.0")
+	tag(t, r, a2, "v1.0.0")
 	checkReleaseData(t, r, 0, "1.0.0")
 	a3 := commit(t, w, "a3")
 	checkReleaseData(t, r, 1, "1.0.0")

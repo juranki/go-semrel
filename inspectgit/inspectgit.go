@@ -5,6 +5,7 @@ package inspectgit
 import (
 	"io"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/blang/semver"
@@ -21,13 +22,21 @@ import (
 // the tag that represents previous release and the commits that haven't
 // been released yet.
 func VCSData(path string) (*semrel.VCSData, error) {
+	return VCSDataWithPrefix(path, "")
+}
+
+// VCSDataWithPrefix returns current version and list of unreleased changes
+//
+// The same as VCSData, but allows prefix before version, when searching earlier
+// releases. Versions without the prefix are still recognized.
+func VCSDataWithPrefix(path string, prefix string) (*semrel.VCSData, error) {
 
 	r, err := git.PlainOpen(path)
 	if err != nil {
 		return nil, err
 	}
 
-	versions, err := getVersions(r)
+	versions, err := getVersions(r, prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -60,11 +69,13 @@ func getHeadTime(r *git.Repository) (*time.Time, error) {
 }
 
 // Search semantic versions from tags, including pre-releases
-func getVersions(r *git.Repository) (map[string]semver.Version, error) {
+// prefix is removed from the tag before trying to parse semantic version
+func getVersions(r *git.Repository, prefix string) (map[string]semver.Version, error) {
 	versions := make(map[string]semver.Version)
 
 	addIfSemVer := func(sha string, version string) {
-		sv, err := semver.ParseTolerant(version)
+		s := strings.TrimPrefix(version, prefix)
+		sv, err := semver.ParseTolerant(s)
 		if err == nil {
 			prevV, prevExists := versions[sha]
 			if prevExists && prevV.GT(sv) {
