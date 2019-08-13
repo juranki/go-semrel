@@ -97,7 +97,7 @@ func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error
 	ac.commit = *commit
 	ac.options = options
 	ac.Hash = commit.SHA
-	if ac.BumpLevel() != semrel.NoBump {
+	if len(ac.Category()) > 0 {
 		changes = append(changes, ac)
 	}
 	return changes, nil
@@ -118,7 +118,7 @@ type Change struct {
 // Category implements semrel.Change interface
 func (commit *Change) Category() string {
 	var categoryMap = map[semrel.BumpLevel]string{
-		semrel.NoBump:    "",
+		semrel.NoBump:    "other",
 		semrel.BumpMajor: "breaking",
 		semrel.BumpMinor: "feature",
 		semrel.BumpPatch: "fix",
