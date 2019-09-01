@@ -196,6 +196,10 @@ func (cache *commitCache) newCommits() []semrel.Commit {
 }
 
 func (cache *commitCache) add(commit *object.Commit, isNew bool, isPreReleased bool) bool {
+	isMerge := false
+	if commit.NumParents() > 1 {
+		isMerge = true
+	}
 	entry, hasEntry := cache.commits[commit.Hash.String()]
 	if !hasEntry {
 		cache.commits[commit.Hash.String()] = &commitCacheEntry{
@@ -205,6 +209,7 @@ func (cache *commitCache) add(commit *object.Commit, isNew bool, isPreReleased b
 				SHA:         commit.Hash.String(),
 				Time:        commit.Author.When,
 				PreReleased: isPreReleased,
+				IsMerge:     isMerge,
 			},
 		}
 		return true

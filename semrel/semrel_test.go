@@ -39,7 +39,7 @@ func TestNoChangesBump(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("0.1.0"),
 		UnreleasedCommits: []Commit{
-			{"aaa", "", time.Now(), false},
+			{"aaa", "", time.Now(), false, false},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)
@@ -76,7 +76,7 @@ func TestRelease1(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("0.0.0"),
 		UnreleasedCommits: []Commit{
-			{"fix", "", time.Now(), false},
+			{"fix", "", time.Now(), false, false},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)
@@ -95,10 +95,10 @@ func TestRelease2(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
 		UnreleasedCommits: []Commit{
-			{"fix", "", time.Now(), false},
-			{"fix", "", time.Now(), false},
-			{"feat", "", time.Now(), false},
-			{"break", "", time.Now(), false},
+			{"fix", "", time.Now(), false, false},
+			{"fix", "", time.Now(), false, false},
+			{"feat", "", time.Now(), false, false},
+			{"break", "", time.Now(), false, false},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)
@@ -123,10 +123,10 @@ func TestRelease3(t *testing.T) {
 	input := &VCSData{
 		CurrentVersion: semver.MustParse("1.2.3"),
 		UnreleasedCommits: []Commit{
-			{"fix", "", time.Now(), false},
-			{"fix", "", time.Now(), false},
-			{"fail", "", time.Now(), false},
-			{"break", "", time.Now(), false},
+			{"fix", "", time.Now(), false, false},
+			{"fix", "", time.Now(), false, false},
+			{"fail", "", time.Now(), false, false},
+			{"break", "", time.Now(), false, false},
 		},
 	}
 	_, err := Release(input, dummyAnalyzer)

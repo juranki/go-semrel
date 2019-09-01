@@ -39,6 +39,7 @@ type Commit struct {
 	SHA         string
 	Time        time.Time
 	PreReleased bool
+	IsMerge     bool
 }
 
 // ByTime implements sort.Interface for []Commit based on Time().
