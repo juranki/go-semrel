@@ -155,7 +155,7 @@ func parseAngularHead(text string) *Change {
 		return &Change{
 			isAngular:  true,
 			CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
-			Scope:      strings.ToLower(strings.Trim(match[2], " \t\n")),
+			Scope:      strings.Trim(match[2], " \t\n"),
 			Subject:    strings.Trim(match[3], " \t\n"),
 		}
 	}
