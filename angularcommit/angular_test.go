@@ -15,7 +15,7 @@ func TestAngularHead(t *testing.T) {
 	}{
 		{"fix(testing): angular head", true, "fix", "testing", "angular head"},
 		{"fix(testing): angular head  ", true, "fix", "testing", "angular head"},
-		{"Fix(Testing): Angular head  ", true, "fix", "testing", "Angular head"},
+		{"Fix(Testing): Angular head  ", true, "fix", "Testing", "Angular head"},
 		{" fix (testing): angular head", true, "fix", "testing", "angular head"},
 		{" fix ( testing ): angular head", true, "fix", "testing", "angular head"},
 		{"fix: angular head", true, "fix", "", "angular head"},
