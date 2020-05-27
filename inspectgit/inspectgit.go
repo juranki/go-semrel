@@ -16,6 +16,9 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
+// default semver
+var defaultSemVer = semver.MustParse("0.0.0")
+
 // VCSData returns current version and list of unreleased changes
 //
 // Open repository at `path` and traverse parents of `HEAD` to find
@@ -114,7 +117,7 @@ func getVersions(r *git.Repository, prefix string) (map[string]semver.Version, e
 
 func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version) (*semrel.VCSData, error) {
 	var traverse func(*object.Commit, bool, bool) error
-	currVersion := semver.MustParse("0.0.0")
+	currVersion := defaultSemVer
 	cache := newCache()
 	traverse = func(c *object.Commit, isNew bool, isPreReleased bool) error {
 		unReleased := isNew
@@ -147,6 +150,28 @@ func getUnreleasedCommits(r *git.Repository, versions map[string]semver.Version)
 			traverse(cc, unReleased, preReleased)
 		}
 	}
+
+	// if we don't have currVersion make sure this is not due a --depth clone
+	// in case we have tag information but no tag for current commits extract
+	// the higher version from the tags in the repo, some people would like to
+	// do things like the example below:
+	//		git clone --depth 50 <repo>
+	//		git fetch --tags
+	if currVersion.Equals(defaultSemVer) {
+		taggedVersionsLength := len(versions)
+		if taggedVersionsLength > 0 {
+			taggedVersions := make([]semver.Version, taggedVersionsLength)
+			i := 0
+			for _, version := range versions {
+				taggedVersions[i] = version
+				i++
+			}
+
+			semver.Sort(taggedVersions)
+			currVersion = taggedVersions[taggedVersionsLength-1]
+		}
+	}
+
 	h, err := r.Head()
 	if err != nil {
 		return nil, errors.Wrap(err, "get HEAD")
