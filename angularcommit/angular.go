@@ -14,8 +14,21 @@ import (
 )
 
 var (
-	fullAngularHead    = regexp.MustCompile(`^\s*([a-zA-Z]+)\s*\(([^\)]+)\):\s*([^\n]*)`)
-	minimalAngularHead = regexp.MustCompile(`^\s*([a-zA-Z]+):\s*([^\n]*)`)
+
+	// <header>
+	// <BLANK LINE>
+	// <body>
+	// <BLANK LINE>
+	// <footer>
+	// ---
+	// <header>
+	// <BLANK LINE>
+	// <body>
+	// <BLANK LINE>
+	// <footer>
+
+	fullAngularHead    = regexp.MustCompile(`(?m)^\s*([a-zA-Z]+)\s*\(([^\)]+)\):\s*([^\n]*)`)
+	minimalAngularHead = regexp.MustCompile(`(?m)^\s*([a-zA-Z]+):\s*([^\n]*)`)
 	// DefaultOptions for angular commit Analyzer
 	DefaultOptions = &Options{
 		ChoreTypes:   []string{"chore", "docs", "test"},
@@ -150,7 +163,22 @@ func (commit *Change) PreReleased() bool {
 }
 
 func parseAngularHead(text string) *Change {
+	var allChanges []*Change
+
 	t := strings.Replace(text, "\r", "", -1)
+	fmt.Printf("%s\n", t)
+	matchs := fullAngularHead.FindAllStringSubmatch(t, -1)
+	for _, match := range matchs {
+		allChanges = append(allChanges,
+			&Change{
+				isAngular:  true,
+				CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
+				Scope:      strings.ToLower(strings.Trim(match[2], " \t\n")),
+				Subject:    strings.Trim(match[3], " \t\n"),
+			},
+		)
+	}
+
 	if match := fullAngularHead.FindStringSubmatch(t); len(match) > 0 {
 		return &Change{
 			isAngular:  true,

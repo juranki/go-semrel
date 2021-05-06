@@ -77,6 +77,7 @@ func TestRelease1(t *testing.T) {
 		CurrentVersion: semver.MustParse("0.0.0"),
 		UnreleasedCommits: []Commit{
 			{"fix", "", time.Now(), false, false},
+			{"fix\nfeat\n", "", time.Now(), false, false},
 		},
 	}
 	output, err := Release(input, dummyAnalyzer)

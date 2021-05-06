@@ -14,6 +14,7 @@ func TestAngularHead(t *testing.T) {
 		subject    string
 	}{
 		{"fix(testing): angular head", true, "fix", "testing", "angular head"},
+		{"fix(testing): angular head\nfox(testing): angular head", true, "fix", "testing", "angular head"},
 		{"fix(testing): angular head  ", true, "fix", "testing", "angular head"},
 		{"Fix(Testing): Angular head  ", true, "fix", "testing", "Angular head"},
 		{" fix (testing): angular head", true, "fix", "testing", "angular head"},
