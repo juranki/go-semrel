@@ -14,8 +14,21 @@ import (
 )
 
 var (
-	fullAngularHead    = regexp.MustCompile(`^\s*([a-zA-Z]+)\s*\(([^\)]+)\):\s*([^\n]*)`)
-	minimalAngularHead = regexp.MustCompile(`^\s*([a-zA-Z]+):\s*([^\n]*)`)
+
+	// <header>
+	// <BLANK LINE>
+	// <body>
+	// <BLANK LINE>
+	// <footer>
+	// ---
+	// <header>
+	// <BLANK LINE>
+	// <body>
+	// <BLANK LINE>
+	// <footer>
+
+	fullAngularHead    = regexp.MustCompile(`(?m)^\s*([a-zA-Z]+)\s*\(([^\)]+)\):\s*([^\n]*)`)
+	minimalAngularHead = regexp.MustCompile(`(?m)^\s*([a-zA-Z]+):\s*([^\n]*)`)
 	// DefaultOptions for angular commit Analyzer
 	DefaultOptions = &Options{
 		ChoreTypes:   []string{"chore", "docs", "test"},
@@ -58,28 +71,38 @@ func New() *Analyzer {
 // Lint checks if message is fomatted according to rules specified in analyzer.
 // Currently only checs the format of head line and that type is found.
 func (analyzer *Analyzer) Lint(message string) []error {
+	var choreType = false
+	var featureType = false
+	var fixType = false
 	options := analyzer.options
 	if options == nil {
 		options = DefaultOptions
 	}
 	ac := parseAngularHead(message)
-	if !ac.isAngular {
+	if !checkAllAngularChanges(ac) {
 		return []error{errors.New("invalid message head")}
 	}
+
 	for _, t := range options.ChoreTypes {
-		if ac.CommitType == t {
-			return []error{}
+		choreType = hasChangeType(ac, t)
+		if choreType == true {
+			break
 		}
 	}
 	for _, t := range options.FeatureTypes {
-		if ac.CommitType == t {
-			return []error{}
+		featureType = hasChangeType(ac, t)
+		if featureType == true {
+			break
 		}
 	}
 	for _, t := range options.FixTypes {
-		if ac.CommitType == t {
-			return []error{}
+		fixType = hasChangeType(ac, t)
+		if fixType == true {
+			break
 		}
+	}
+	if choreType || featureType || fixType {
+		return []error{}
 	}
 	return []error{errors.New("invalid type")}
 }
@@ -93,12 +116,14 @@ func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error
 	changes := []semrel.Change{}
 	message := commit.Msg
 	ac := parseAngularHead(message)
-	ac.BreakingMessage = parseAngularBreakingChange(message, options.BreakingChangeMarkers)
-	ac.commit = *commit
-	ac.options = options
-	ac.Hash = commit.SHA
-	if len(ac.Category()) > 0 {
-		changes = append(changes, ac)
+	for _, change := range *ac {
+		change.BreakingMessage = parseAngularBreakingChange(message, options.BreakingChangeMarkers)
+		change.commit = *commit
+		change.options = options
+		change.Hash = commit.SHA
+		if len(change.Category()) > 0 {
+			changes = append(changes, change)
+		}
 	}
 	return changes, nil
 }
@@ -106,6 +131,7 @@ func (analyzer *Analyzer) Analyze(commit *semrel.Commit) ([]semrel.Change, error
 // Change captures commit message analysis
 type Change struct {
 	isAngular       bool
+	FullHeader      string
 	CommitType      string
 	Scope           string
 	Subject         string
@@ -149,27 +175,47 @@ func (commit *Change) PreReleased() bool {
 	return commit.commit.PreReleased
 }
 
-func parseAngularHead(text string) *Change {
+func parseAngularHead(text string) *[]*Change {
+	var allChanges []*Change
 	t := strings.Replace(text, "\r", "", -1)
-	if match := fullAngularHead.FindStringSubmatch(t); len(match) > 0 {
-		return &Change{
-			isAngular:  true,
-			CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
-			Scope:      strings.ToLower(strings.Trim(match[2], " \t\n")),
-			Subject:    strings.Trim(match[3], " \t\n"),
+	mFull := fullAngularHead.FindAllStringSubmatch(t, -1)
+	if len(mFull) > 0 {
+		for _, match := range mFull {
+			allChanges = append(allChanges,
+				&Change{
+					isAngular:  true,
+					FullHeader: strings.ToLower(strings.Trim(match[0], " \t\n")),
+					CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
+					Scope:      strings.ToLower(strings.Trim(match[2], " \t\n")),
+					Subject:    strings.Trim(match[3], " \t\n"),
+				},
+			)
 		}
 	}
-	if match := minimalAngularHead.FindStringSubmatch(text); len(match) > 0 {
-		return &Change{
-			isAngular:  true,
-			CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
-			Subject:    strings.Trim(match[2], " \t\n"),
+
+	mMinimal := minimalAngularHead.FindAllStringSubmatch(t, -1)
+	if len(mMinimal) > 0 {
+		for _, match := range mMinimal {
+			allChanges = append(allChanges,
+				&Change{
+					isAngular:  true,
+					FullHeader: strings.ToLower(strings.Trim(match[0], " \t\n")),
+					CommitType: strings.ToLower(strings.Trim(match[1], " \t\n")),
+					Subject:    strings.Trim(match[2], " \t\n"),
+				},
+			)
 		}
 	}
-	return &Change{
-		isAngular: false,
-		Subject:   strings.Trim(strings.Split(text, "\n")[0], " \n\t"),
+
+	if len(mFull) == 0 && len(mMinimal) == 0 {
+		allChanges = append(allChanges,
+			&Change{
+				isAngular: false,
+				Subject:   strings.Trim(strings.Split(text, "\n")[0], " \n\t"),
+			},
+		)
 	}
+	return &allChanges
 }
 
 func parseAngularBreakingChange(text string, markers []string) string {
