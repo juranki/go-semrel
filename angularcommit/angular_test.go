@@ -14,7 +14,7 @@ func TestAngularHead(t *testing.T) {
 		subject    string
 	}{
 		{"fix(testing): angular head", true, "fix", "testing", "angular head"},
-		{"fix(testing): angular head\nfox(testing): angular head", true, "fix", "testing", "angular head"},
+		{"fix(testing): angular head\nfix(testing): angular head", true, "fix", "testing", "angular head"},
 		{"fix(testing): angular head  ", true, "fix", "testing", "angular head"},
 		{"Fix(Testing): Angular head  ", true, "fix", "testing", "Angular head"},
 		{" fix (testing): angular head", true, "fix", "testing", "angular head"},
@@ -28,18 +28,21 @@ func TestAngularHead(t *testing.T) {
 	}
 	for _, c := range cases {
 		ah := parseAngularHead(c.msg)
-		if ah.isAngular != c.isAngular {
-			t.Errorf("'%s': got isAngular=%t, want %t\n", c.msg, ah.isAngular, c.isAngular)
+		for _, cg := range *ah {
+			if cg.isAngular != c.isAngular {
+				t.Errorf("'%s': got isAngular=%t, want %t\n", c.msg, cg.isAngular, c.isAngular)
+			}
+			if cg.CommitType != c.commitType {
+				t.Errorf("'%s': got type '%s', want '%s'\n", c.msg, cg.CommitType, c.commitType)
+			}
+			if cg.Scope != c.scope {
+				t.Errorf("'%s': got scope '%s', want '%s'\n", c.msg, cg.Scope, c.scope)
+			}
+			if cg.Subject != c.subject {
+				t.Errorf("'%s': got subject '%s', want '%s'\n", c.msg, cg.Subject, c.subject)
+			}
 		}
-		if ah.CommitType != c.commitType {
-			t.Errorf("'%s': got type '%s', want '%s'\n", c.msg, ah.CommitType, c.commitType)
-		}
-		if ah.Scope != c.scope {
-			t.Errorf("'%s': got scope '%s', want '%s'\n", c.msg, ah.Scope, c.scope)
-		}
-		if ah.Subject != c.subject {
-			t.Errorf("'%s': got subject '%s', want '%s'\n", c.msg, ah.Subject, c.subject)
-		}
+
 	}
 }
 
