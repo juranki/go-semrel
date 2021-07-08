@@ -1,4 +1,4 @@
-module github.com/juranki/go-semrel
+module github.com/MrDeerly/go-semrel
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
