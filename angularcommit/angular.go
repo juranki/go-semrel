@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/juranki/go-semrel/semrel"
+	"github.com/MrDeerly/go-semrel/semrel"
 )
 
 var (
